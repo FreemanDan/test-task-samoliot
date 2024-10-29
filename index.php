@@ -51,7 +51,7 @@ $start = ($page - 1) * $limit;
 
 $result = CRest::call('crm.lead.list', [
     'order' => ['ID' => 'DESC'],
-    'filter' => ['!UF_CRM_1612963342082' => false],  // Фильтр по непустому значению температуры клиента
+    //'filter' => ['!UF_CRM_1612963342082' => false],  // Фильтр по непустому значению температуры клиента
     'select' => ['ID', 'TITLE', 'ASSIGNED_BY_ID', 'UF_CRM_1612963342082'],
     'start' => $start,
 ]);
@@ -64,6 +64,12 @@ if (isset($result['error'])) {
     exit;
 }
 
+// Данные из ответа API
+$total = $result['total']; // Общее количество лидов
+$totalPages = ceil($total / $limit); // Общее количество страниц
+$paginationRange = 5; // Количество страниц до и после текущей страницы
+$startPage = max(1, $page - $paginationRange);
+$endPage = min($totalPages, $page + $paginationRange);
 $leads = $result['result'];
 ?>
 
@@ -116,6 +122,11 @@ $leads = $result['result'];
 
     <h1 class="mb-4">Список лидов</h1>
 
+    <!-- Кнопка для открытия модального окна -->
+
+    <button class="btn btn-success mt-4" data-toggle="modal" data-target="#addLeadModal">Добавить лид</button>
+    <hr>
+
     <table class="table table-bordered">
         <thead class="thead-light">
             <tr>
@@ -128,7 +139,7 @@ $leads = $result['result'];
             <?php foreach ($leads as $lead):
                 // Устанавливаем класс стиля в зависимости от значения температуры
                 $temperatureClass = '';
-                $temperatureValue = $fieldValues[$lead['UF_CRM_1612963342082']] ?? 'Не установлено';
+                $temperatureValue = $fieldValues[$lead['UF_CRM_1612963342082']] ?? 'undefined';
 
                 switch ($temperatureValue) {
                     case 'горячий':
@@ -145,22 +156,46 @@ $leads = $result['result'];
                 <tr>
                     <td><?= htmlspecialchars($lead['TITLE']) ?></td>
                     <td><?= htmlspecialchars($lead['ASSIGNED_BY_ID']) ?></td>
-                    <td class="<?= $temperatureClass ?>"><?= htmlspecialchars(($fieldValues[$lead['UF_CRM_1612963342082']] ?? 'Неизвестно')) ?></td>
+                    <td class="<?= $temperatureClass ?>"><?= htmlspecialchars(($fieldValues[$lead['UF_CRM_1612963342082']] ?? 'Не установлено')) ?></td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 
     <!-- Постраничная навигация -->
-    <div class="d-flex justify-content-between">
+    <div class="d-flex justify-content-center align-items-center mt-4">
+        <!-- Первая страница -->
         <?php if ($page > 1): ?>
-            <a href="?page=<?= $page - 1 ?>" class="btn btn-primary">Назад</a>
+            <a href="?page=1" class="btn btn-secondary mx-1">Первая</a>
         <?php endif; ?>
-        <a href="?page=<?= $page + 1 ?>" class="btn btn-primary">Вперед</a>
-    </div>
 
-    <!-- Кнопка для открытия модального окна -->
-    <button class="btn btn-success mt-4" data-toggle="modal" data-target="#addLeadModal">Добавить лид</button>
+        <!-- Предыдущая страница -->
+        <?php if ($page > 1): ?>
+            <a href="?page=<?= $page - 1 ?>" class="btn btn-primary mx-1">Назад</a>
+        <?php endif; ?>
+
+        <!-- Страницы до и после текущей -->
+        <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
+            <?php if ($i == $page): ?>
+                <span class="btn btn-primary mx-1 disabled"><?= $i ?></span>
+            <?php else: ?>
+                <a href="?page=<?= $i ?>" class="btn btn-outline-primary mx-1"><?= $i ?></a>
+            <?php endif; ?>
+        <?php endfor; ?>
+
+        <!-- Следующая страница -->
+        <?php if ($page < $totalPages): ?>
+            <a href="?page=<?= $page + 1 ?>" class="btn btn-primary mx-1">Вперед</a>
+        <?php endif; ?>
+
+        <!-- Последняя страница -->
+        <?php if ($page < $totalPages): ?>
+            <a href="?page=<?= $totalPages ?>" class="btn btn-secondary mx-1">Последняя</a>
+        <?php endif; ?>
+
+        <!-- Общее количество страниц -->
+        <span class="mx-3">Страница <?= $page ?> из <?= $totalPages ?></span>
+    </div>
 
     <!-- Модальное окно для добавления лида -->
     <div class="modal fade" id="addLeadModal" tabindex="-1" role="dialog" aria-labelledby="addLeadModalLabel" aria-hidden="true">
@@ -190,7 +225,7 @@ $leads = $result['result'];
                         </div>
                         <div class="form-group">
                             <label for="leadAssignedBy">ID Ответственного</label>
-                            <input type="number" class="form-control" id="leadAssignedBy" required>
+                            <input type="number" class="form-control" id="leadAssignedBy" value="1" required>
                         </div>
                         <div class="form-group">
                             <label for="leadStatus">Температура клиента</label>
