@@ -1,0 +1,4 @@
+lib/crest/logs/
+cache/
+lib/crest/settings.php
+test.php

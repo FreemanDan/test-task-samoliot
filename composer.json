@@ -1,0 +1,11 @@
+{
+    "name": "danil-manyushko/bitrix24-test",
+    "description": "Test task. Displaying a list of leads in the form of a table with pagination. Adding new leads",
+    "authors": [
+        {
+            "name": "Danil Manyushko"
+        }
+    ],
+      "require": {
+      }
+}
