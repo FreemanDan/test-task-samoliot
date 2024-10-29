@@ -155,7 +155,7 @@ $leads = $result['result'];
             ?>
                 <tr>
                     <td><?= htmlspecialchars($lead['TITLE']) ?></td>
-                    <td><?= htmlspecialchars($lead['ASSIGNED_BY_ID']) ?></td>
+                    <td><?= htmlspecialchars($lead['ASSIGNED_BY_ID'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
                     <td class="<?= $temperatureClass ?>"><?= htmlspecialchars(($fieldValues[$lead['UF_CRM_1612963342082']] ?? 'Не установлено')) ?></td>
                 </tr>
             <?php endforeach; ?>
